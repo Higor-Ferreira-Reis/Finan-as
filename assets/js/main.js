@@ -33,6 +33,9 @@ class SistemaFinanceiro {
         // Renderizar dados iniciais
         gerenciadorTransacoes.renderizarTransacoes();
         gerenciadorDividas.renderizarDividas();
+        if (gerenciadorInvestimentos) {
+            gerenciadorInvestimentos.renderizarInvestimentos();
+        }
         gerenciadorRelatorios.atualizarRelatorios();
         
         // Atualizar dashboard
@@ -74,6 +77,11 @@ class SistemaFinanceiro {
         if (abaAtiva === 'relatorios') {
             gerenciadorRelatorios.atualizarRelatorios();
         }
+
+        // Atualizar investimentos se for a aba de investimentos
+        if (abaAtiva === 'investimentos' && gerenciadorInvestimentos) {
+            gerenciadorInvestimentos.renderizarInvestimentos();
+        }
     }
 
     fecharTodosModais() {
@@ -89,11 +97,15 @@ class SistemaFinanceiro {
         const totalGanhos = gerenciadorTransacoes.obterTotalGanhos();
         const totalGastos = gerenciadorTransacoes.obterTotalGastos();
         const dividasPendentes = gerenciadorDividas.obterDividasPendentes();
+        const totalInvestido = gerenciadorInvestimentos ? gerenciadorInvestimentos.obterTotalInvestido() : 0;
+        const rendimentoTotal = gerenciadorInvestimentos ? gerenciadorInvestimentos.obterRendimentoTotal() : 0;
 
         document.getElementById('saldoTotal').textContent = Utils.formatarMoeda(saldo);
         document.getElementById('totalGanhos').textContent = Utils.formatarMoeda(totalGanhos);
         document.getElementById('totalGastos').textContent = Utils.formatarMoeda(totalGastos);
         document.getElementById('dividasPendentes').textContent = Utils.formatarMoeda(dividasPendentes);
+        document.getElementById('totalInvestido').textContent = Utils.formatarMoeda(totalInvestido);
+        document.getElementById('rendimentoTotal').textContent = Utils.formatarMoeda(rendimentoTotal);
 
         // Atualizar cores baseadas no saldo
         const saldoElement = document.getElementById('saldoTotal');
@@ -102,6 +114,14 @@ class SistemaFinanceiro {
         } else {
             saldoElement.className = 'text-2xl font-bold text-red-600';
         }
+
+        // Atualizar cor do rendimento total
+        const rendimentoElement = document.getElementById('rendimentoTotal');
+        if (rendimentoTotal >= 0) {
+            rendimentoElement.className = 'text-2xl font-bold text-green-600';
+        } else {
+            rendimentoElement.className = 'text-2xl font-bold text-red-600';
+        }
     }
 
     // Método para exportar dados
@@ -109,6 +129,7 @@ class SistemaFinanceiro {
         const dados = {
             transacoes: Utils.carregarDados('transacoes'),
             dividas: Utils.carregarDados('dividas'),
+            investimentos: Utils.carregarDados('investimentos'),
             dataExportacao: new Date().toISOString()
         };
 
@@ -142,9 +163,19 @@ class SistemaFinanceiro {
                     gerenciadorDividas.dividas = dados.dividas;
                 }
 
+                if (dados.investimentos) {
+                    Utils.salvarDados('investimentos', dados.investimentos);
+                    if (gerenciadorInvestimentos) {
+                        gerenciadorInvestimentos.investimentos = dados.investimentos;
+                    }
+                }
+
                 // Atualizar interface
                 gerenciadorTransacoes.renderizarTransacoes();
                 gerenciadorDividas.renderizarDividas();
+                if (gerenciadorInvestimentos) {
+                    gerenciadorInvestimentos.renderizarInvestimentos();
+                }
                 gerenciadorRelatorios.atualizarRelatorios();
                 this.atualizarDashboard();
 
@@ -161,12 +192,19 @@ class SistemaFinanceiro {
         if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
             localStorage.removeItem('transacoes');
             localStorage.removeItem('dividas');
+            localStorage.removeItem('investimentos');
             
             gerenciadorTransacoes.transacoes = [];
             gerenciadorDividas.dividas = [];
+            if (gerenciadorInvestimentos) {
+                gerenciadorInvestimentos.investimentos = [];
+            }
             
             gerenciadorTransacoes.renderizarTransacoes();
             gerenciadorDividas.renderizarDividas();
+            if (gerenciadorInvestimentos) {
+                gerenciadorInvestimentos.renderizarInvestimentos();
+            }
             gerenciadorRelatorios.atualizarRelatorios();
             this.atualizarDashboard();
             
@@ -179,6 +217,7 @@ class SistemaFinanceiro {
         const dados = {
             transacoes: Utils.carregarDados('transacoes'),
             dividas: Utils.carregarDados('dividas'),
+            investimentos: Utils.carregarDados('investimentos'),
             dataBackup: new Date().toISOString()
         };
 

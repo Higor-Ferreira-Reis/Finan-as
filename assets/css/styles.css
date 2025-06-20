@@ -64,6 +64,55 @@
     border-left-color: #ef4444;
 }
 
+/* Estilos para cards de investimento */
+.investimento-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid #8b5cf6;
+}
+
+.investimento-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(139, 92, 246, 0.15);
+}
+
+.investimento-card.rendimento-positivo {
+    border-left-color: #10b981;
+}
+
+.investimento-card.rendimento-negativo {
+    border-left-color: #ef4444;
+}
+
+.investimento-card.rendimento-neutro {
+    border-left-color: #6b7280;
+}
+
+/* Estilos para valores de investimento */
+.valor-investido {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.valor-atual {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.rendimento-positivo {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.rendimento-negativo {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.rentabilidade-mensal {
+    color: #8b5cf6;
+    font-weight: 600;
+}
+
 /* Estilos para status de pagamento */
 .status-pago {
     background-color: #dcfce7;

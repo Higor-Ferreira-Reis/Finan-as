@@ -3,12 +3,16 @@ class GerenciadorRelatorios {
     constructor() {
         this.graficoCategorias = null;
         this.graficoFluxo = null;
+        this.graficoInvestimentos = null;
+        this.graficoRendimento = null;
         this.inicializarGraficos();
     }
 
     inicializarGraficos() {
         this.criarGraficoCategorias();
         this.criarGraficoFluxo();
+        this.criarGraficoInvestimentos();
+        this.criarGraficoRendimento();
     }
 
     criarGraficoCategorias() {
@@ -122,6 +126,106 @@ class GerenciadorRelatorios {
         });
     }
 
+    criarGraficoInvestimentos() {
+        const ctx = document.getElementById('graficoInvestimentos');
+        if (!ctx) return;
+
+        this.graficoInvestimentos = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [
+                        '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                        '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280',
+                        '#A855F7', '#14B8A6', '#F43F5E', '#EAB308', '#22C55E'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: R$ ${value.toFixed(2)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    criarGraficoRendimento() {
+        const ctx = document.getElementById('graficoRendimento');
+        if (!ctx) return;
+
+        this.graficoRendimento = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Valor Investido',
+                    data: [],
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: '#3B82F6',
+                    borderWidth: 1
+                }, {
+                    label: 'Rendimento',
+                    data: [],
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderColor: '#10B981',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: R$ ${context.parsed.y.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'R$ ' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     atualizarGraficoCategorias() {
         if (!this.graficoCategorias) return;
 
@@ -190,9 +294,42 @@ class GerenciadorRelatorios {
         this.graficoFluxo.update();
     }
 
+    atualizarGraficoInvestimentos() {
+        if (!this.graficoInvestimentos || !gerenciadorInvestimentos) return;
+
+        const dadosPorTipo = gerenciadorInvestimentos.obterDadosRelatorio();
+        
+        // Ordenar por valor investido (maior para menor)
+        const tiposOrdenados = Object.entries(dadosPorTipo)
+            .sort(([,a], [,b]) => b.valorInvestido - a.valorInvestido)
+            .slice(0, 10); // Top 10 tipos
+
+        this.graficoInvestimentos.data.labels = tiposOrdenados.map(([tipo]) => tipo);
+        this.graficoInvestimentos.data.datasets[0].data = tiposOrdenados.map(([, dados]) => dados.valorInvestido);
+        this.graficoInvestimentos.update();
+    }
+
+    atualizarGraficoRendimento() {
+        if (!this.graficoRendimento || !gerenciadorInvestimentos) return;
+
+        const dadosPorTipo = gerenciadorInvestimentos.obterDadosRelatorio();
+        
+        // Ordenar por rendimento (maior para menor)
+        const tiposOrdenados = Object.entries(dadosPorTipo)
+            .sort(([,a], [,b]) => b.rendimento - a.rendimento)
+            .slice(0, 8); // Top 8 tipos para melhor visualização
+
+        this.graficoRendimento.data.labels = tiposOrdenados.map(([tipo]) => tipo);
+        this.graficoRendimento.data.datasets[0].data = tiposOrdenados.map(([, dados]) => dados.valorInvestido);
+        this.graficoRendimento.data.datasets[1].data = tiposOrdenados.map(([, dados]) => dados.rendimento);
+        this.graficoRendimento.update();
+    }
+
     atualizarRelatorios() {
         this.atualizarGraficoCategorias();
         this.atualizarGraficoFluxo();
+        this.atualizarGraficoInvestimentos();
+        this.atualizarGraficoRendimento();
     }
 
     gerarRelatorioMensal(mes, ano) {
